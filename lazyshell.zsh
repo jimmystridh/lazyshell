@@ -282,9 +282,24 @@ _lazyshell_explain_key_default="^E"
 _lazyshell_toggle_provider_key_default="^T"
 
 # Get user-defined or default keybindings
-_lazyshell_complete_key="${LAZYSHELL_COMPLETE_KEY:-$_lazyshell_complete_key_default}"
-_lazyshell_explain_key="${LAZYSHELL_EXPLAIN_KEY:-$_lazyshell_explain_key_default}"
-_lazyshell_toggle_provider_key="${LAZYSHELL_TOGGLE_PROVIDER_KEY:-$_lazyshell_toggle_provider_key_default}"
+# Check if variables are set, including empty strings
+if [[ -v LAZYSHELL_COMPLETE_KEY ]]; then
+  _lazyshell_complete_key="$LAZYSHELL_COMPLETE_KEY"
+else
+  _lazyshell_complete_key="$_lazyshell_complete_key_default"
+fi
+
+if [[ -v LAZYSHELL_EXPLAIN_KEY ]]; then
+  _lazyshell_explain_key="$LAZYSHELL_EXPLAIN_KEY"
+else
+  _lazyshell_explain_key="$_lazyshell_explain_key_default"
+fi
+
+if [[ -v LAZYSHELL_TOGGLE_PROVIDER_KEY ]]; then
+  _lazyshell_toggle_provider_key="$LAZYSHELL_TOGGLE_PROVIDER_KEY"
+else
+  _lazyshell_toggle_provider_key="$_lazyshell_toggle_provider_key_default"
+fi
 
 # Bind keys if the key variable is not empty
 if [[ -n "$_lazyshell_complete_key" ]]; then
@@ -294,7 +309,7 @@ fi
 
 if [[ -n "$_lazyshell_explain_key" ]]; then
   bindkey "$_lazyshell_explain_key" __lazyshell_explain
-  echo "LazyShell: Bound Explain to $_lazyshell_explain_key" # For debugging
+   echo "LazyShell: Bound Explain to $_lazyshell_explain_key" # For debugging
 
   # Integrate with zsh-autosuggestions if the explain command is active
   # This ensures that if autosuggestions are showing and the explain key is hit,
