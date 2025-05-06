@@ -161,12 +161,30 @@ __lazyshell_complete() {
   # Read user input
   # Todo: use zle to read input
   local REPLY
+  local read_op_status # To store the exit status of read-from-minibuffer
+
   autoload -Uz read-from-minibuffer
   read-from-minibuffer '> Query: '
+  read_op_status=$?
+
+  # Restore the original buffer and cursor position regardless of read outcome,
+  # as we are now out of the minibuffer.
   BUFFER="$buffer_context"
   CURSOR=$cursor_position
 
+  # Handle interruption (e.g., Ctrl+C) during read-from-minibuffer
+  if [[ $read_op_status -ne 0 ]]; then
+    zle -M "Completion aborted (interrupted)."
+    return 1 # Indicate failure/abort to ZLE
+  fi
 
+  # Handle empty input (user pressed Enter without typing)
+  if [[ -z "$REPLY" ]]; then
+    zle -M "Completion aborted (empty input)."
+    return 0 # Indicate successful, but intentionally aborted, completion
+  fi
+
+  # If we reach here, input was successful and non-empty. Proceed with LLM call.
   local os=$(__lzsh_get_os_prompt_injection)
   local intro="You are a zsh autocomplete script. All your answers are a single command$os, and nothing else. You do not need to wrap the command in backticks. You do not write any human-readable explanations. If you cannot provide a response, start your response with \`#\`."
   if [[ -z "$buffer_context" ]]; then
@@ -276,7 +294,7 @@ fi
 
 if [[ -n "$_lazyshell_explain_key" ]]; then
   bindkey "$_lazyshell_explain_key" __lazyshell_explain
-  # echo "LazyShell: Bound Explain to $_lazyshell_explain_key" # For debugging
+  echo "LazyShell: Bound Explain to $_lazyshell_explain_key" # For debugging
 
   # Integrate with zsh-autosuggestions if the explain command is active
   # This ensures that if autosuggestions are showing and the explain key is hit,
