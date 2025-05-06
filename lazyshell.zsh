@@ -236,15 +236,60 @@ __lazyshell_toggle_provider() {
   fi
 }
 
-# Bind the __lazyshell_complete function to the Alt-g hotkey
-# Bind the __lazyshell_explain function to the Alt-e hotkey
-# Bind the __lazyshell_toggle_provider function to the Alt-t hotkey
+# --- Keybinding Configuration ---
+# Users can customize or disable keybindings by setting these environment variables
+# in their .zshrc or a dedicated LazyShell config file (e.g., ~/.lazyshellrc sourced by .zshrc).
+# To disable a keybinding, set the corresponding variable to an empty string.
+# Example: export LAZYSHELL_EXPLAIN_KEY=""
+# To change a keybinding, set it to the desired ZLE sequence. Ensure the sequence is
+# quoted correctly, especially if it involves backslashes.
+# Example: export LAZYSHELL_COMPLETE_KEY='\eG' # Binds Meta+G (often Alt+G)
+# Example: export LAZYSHELL_COMPLETE_KEY='^xG' # Binds Ctrl+X then G
+#
+# Common ZLE key sequences:
+#   ^X for Ctrl+X
+#   \eX or \M-X for Meta+X (often Alt+X). \e is ESC.
+#   Check your terminal's behavior and Zsh's `bindkey -L` for existing bindings.
+# The original script used ^G, ^E, ^T. These might map to Alt+keys on your system
+# or might indeed be Ctrl+keys. The defaults below preserve this original behavior.
+
+# Register widgets (functions must exist, defined elsewhere in this script)
 zle -N __lazyshell_complete
 zle -N __lazyshell_explain
 zle -N __lazyshell_toggle_provider
-bindkey '^G' __lazyshell_complete
-bindkey '^E' __lazyshell_explain
-bindkey '^T' __lazyshell_toggle_provider
 
-typeset -ga ZSH_AUTOSUGGEST_CLEAR_WIDGETS
-ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=( __lazyshell_explain )
+# Define default keybindings (preserving original script's values)
+_lazyshell_complete_key_default="^G"
+_lazyshell_explain_key_default="^E"
+_lazyshell_toggle_provider_key_default="^T"
+
+# Get user-defined or default keybindings
+_lazyshell_complete_key="${LAZYSHELL_COMPLETE_KEY:-$_lazyshell_complete_key_default}"
+_lazyshell_explain_key="${LAZYSHELL_EXPLAIN_KEY:-$_lazyshell_explain_key_default}"
+_lazyshell_toggle_provider_key="${LAZYSHELL_TOGGLE_PROVIDER_KEY:-$_lazyshell_toggle_provider_key_default}"
+
+# Bind keys if the key variable is not empty
+if [[ -n "$_lazyshell_complete_key" ]]; then
+  bindkey "$_lazyshell_complete_key" __lazyshell_complete
+  # echo "LazyShell: Bound Complete to $_lazyshell_complete_key" # For debugging
+fi
+
+if [[ -n "$_lazyshell_explain_key" ]]; then
+  bindkey "$_lazyshell_explain_key" __lazyshell_explain
+  # echo "LazyShell: Bound Explain to $_lazyshell_explain_key" # For debugging
+
+  # Integrate with zsh-autosuggestions if the explain command is active
+  # This ensures that if autosuggestions are showing and the explain key is hit,
+  # the explain widget runs instead of the autosuggestion being accepted/modified.
+  typeset -ga ZSH_AUTOSUGGEST_CLEAR_WIDGETS
+  if [[ -z "${ZSH_AUTOSUGGEST_CLEAR_WIDGETS[(r)__lazyshell_explain]}" ]]; then
+    ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=( __lazyshell_explain )
+  fi
+fi
+
+if [[ -n "$_lazyshell_toggle_provider_key" ]]; then
+  bindkey "$_lazyshell_toggle_provider_key" __lazyshell_toggle_provider
+  # echo "LazyShell: Bound Toggle Provider to $_lazyshell_toggle_provider_key" # For debugging
+fi
+
+# --- End Keybinding Configuration ---
