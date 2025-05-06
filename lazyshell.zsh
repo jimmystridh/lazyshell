@@ -55,7 +55,7 @@ __lzsh_llm_api_call() {
 
   local escaped_prompt=$(echo "$prompt" | jq -R -s '.')
   local escaped_intro=$(echo "$intro" | jq -R -s '.')
-  local data='{"messages":[{"role": "system", "content": '"$escaped_intro"'},{"role": "user", "content": '"$escaped_prompt"'}],"model":"gpt-3.5-turbo","max_tokens":256,"temperature":0}'
+  local data='{"messages":[{"role": "system", "content": '"$escaped_intro"'},{"role": "user", "content": '"$escaped_prompt"'}],"model":"gpt-4o","max_tokens":256,"temperature":0}'
 
   # Read the response from file
   # Todo: avoid using temp files
@@ -122,7 +122,7 @@ __lazyshell_complete() {
 
 
   local os=$(__lzsh_get_os_prompt_injection)
-  local intro="You are a zsh autocomplete script. All your answers are a single command$os, and nothing else. You do not write any human-readable explanations. If you fail to answer, start your response with \`#\`."
+  local intro="You are a zsh autocomplete script. All your answers are a single command$os, and nothing else. You do not need to wrap the command in backticks. You do not write any human-readable explanations. If you cannot provide a response, start your response with \`#\`."
   if [[ -z "$buffer_context" ]]; then
     local prompt="$REPLY"
   else
@@ -175,8 +175,8 @@ fi
 # Bind the __lazyshell_explain function to the Alt-e hotkey
 zle -N __lazyshell_complete
 zle -N __lazyshell_explain
-bindkey '\eg' __lazyshell_complete
-bindkey '\ee' __lazyshell_explain
+bindkey '^G' __lazyshell_complete
+bindkey '^E' __lazyshell_explain
 
 typeset -ga ZSH_AUTOSUGGEST_CLEAR_WIDGETS
 ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=( __lazyshell_explain )
